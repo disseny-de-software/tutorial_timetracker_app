@@ -1,15 +1,3 @@
-<!--
-author: Joan Serrat
-summary: Time Tracker app in Flutter
-id: timetracker-in-flutter
-tags: Flutter, Dart, JSON
-categories: codelab,markdown
-environments: Web
-status: Published
-feedback link: cv.uab.es
-analytics account:
--->
-
 # Tutorial TimeTracker App
 
 <!-- ## Introduction -->
@@ -720,8 +708,14 @@ public class WebServer {
       String answer = "";
       answer += "HTTP/1.0 200 OK\r\n";
       answer += "Content-type: application/json\r\n";
+      //answer += "Access-Control-Allow-Origin: *\r\n";
+      // IMPORTANT: you may need to uncomment the preceding
+      // sentence in order to avoid the CORS error :
+      // "Cross-Origin Request Blocked: The Same Origin 
+      // Policy disallows reading the remote resource..."
       answer += "\r\n"; 
-      // blank line between headers and content, very important !
+      // blank line between headers and content, very 
+      // important !
       return answer;
     }
   } // SocketThread
