@@ -1,13 +1,11 @@
 # Tutorial TimeTracker App
 
-<!-- ## Introduction -->
-<!-- Duration: 0:02:00 -->
-
-This tutorial has two goals:
+This tutorial has three goals:
 - learn how to make a simple user interface in Flutter
-- build the base of the time tracker app that you have to do for the practicum
+- make the starting point for the exercise "report form in Flutter" by doing the two first steps
+- build the base of the time tracker app that you have to do for the practicum in the third milestone
 
-A base means that some parts of the code you'll probably want to keep them, but others related to the user interface appearance, will definitely to be changed.
+Base means that some parts of the code you'll probably want to keep them, but others related to the user interface appearance, will definitely be changed.
 
 This is what we are going to build:
 
@@ -21,12 +19,20 @@ What this animation shows is :
 - likewise, navigation up and down, go home, start and stop send requests also to the server
 
 Preconditions:
-- you have installed Flutter into IntelliJ. If not, see how to in the practicum handout
-- you have read the slides on Dart and Fluttet
-- same with the slides on Flutter "futures"
+- you have installed Flutter into IntelliJ. If not, see how to in the practicum handout. Or see the [note](#note) below.
+- you have read the slides on Dart and Flutter, including Flutter "futures"
 - optionally you have also gone through the getting started codelab in [flutter.dev](http://flutter.dev)
 
 
+<a id="note">**Note**</a> installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it etc.) takes time. You will eventually do it in the third milestone but now there is a shortcut to start the exercise right away. Go to https://dartpad.dev, make a new pad of Flutter type  and copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same place and consequently you need to not copy some import sentences.
+
+<br>
+
+![](dartpad_dev.png)
+
+<br>
+
+<!--
 Outline:
 
 1. [A view with a static list](#1-a-view-with-a-static-list)
@@ -42,6 +48,7 @@ Outline:
 1. [Count the time](#6-count-the-time)
 1. [Automatic refresh](#7-automatic-refresh)
 1. [Format date and time](#8-format-date-and-time)
+-->
 
 ---
 
@@ -56,9 +63,9 @@ First step is to create Dart classes to represent the one-level tree that is sho
 
 <br>
 
-**1.** Launch IntelliJ and create a new Flutter project named `codelab_timetracker`. Let the wizard create the `lib/main.dart` file for you.
+**1.** Launch IntelliJ and create a new Flutter project named `timetracker_app`. Let the wizard create the `lib/main.dart` file for you.
 
-**2.** Edit `pubspec.yaml` to add a dependency to the intl Dart library. It will allow us to format dates and times.
+**2.** Edit `pubspec.yaml` to add a dependency to the intl Dart library and click on ``Pub get`` to install. It will allow us to format dates and times.
 
 ```yaml
 dependencies:
@@ -80,12 +87,12 @@ import 'dart:convert' as convert;
 final DateFormat _dateFormatter = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 abstract class Activity {
-  int id;
-  String name;
-  DateTime initialDate;
-  DateTime finalDate;
-  int duration;
-  List<dynamic> children = List<dynamic>();
+  late int id;
+  late String name;
+  DateTime? initialDate;
+  DateTime? finalDate;
+  late int duration;
+  List<dynamic> children = List<dynamic>.empty(growable: true);
 
   Activity.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -98,11 +105,11 @@ abstract class Activity {
 
 class Project extends Activity {
   Project.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    if (json.containsKey('activities')) { 
+    if (json.containsKey('activities')) {
       // json has only 1 level because depth=1 or 0 in time_tracker
       for (Map<String, dynamic> jsonChild in json['activities']) {
         if (jsonChild['class'] == "project") {
-          children.add(Project.fromJson(jsonChild)); 
+          children.add(Project.fromJson(jsonChild));
           // condition on key avoids infinite recursion
         } else if (jsonChild['class'] == "task") {
           children.add(Task.fromJson(jsonChild));
@@ -116,7 +123,7 @@ class Project extends Activity {
 
 
 class Task extends Activity {
-  bool active;
+  late bool active;
   Task.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     active = json['active'];
     for (Map<String, dynamic> jsonChild in json['intervals']) {
@@ -127,11 +134,11 @@ class Task extends Activity {
 
 
 class Interval {
-  int id;
-  DateTime initialDate;
-  DateTime finalDate;
-  int duration;
-  bool active;
+  late int id;
+  DateTime? initialDate;
+  DateTime? finalDate;
+  late int duration;
+  late bool active;
 
   Interval.fromJson(Map<String, dynamic> json)
       : id = json['id'],
@@ -143,7 +150,7 @@ class Interval {
 
 
 class Tree {
-  Activity root;
+  late Activity root;
 
   Tree(Map<String, dynamic> dec) {
     // 1 level tree, root and children only, root is either Project or Task. If Project
@@ -192,7 +199,9 @@ void main() {
 
 In function ``getTree()`` we instantiate a sample JSON string and decode it producing a JSON object by means of the `convert` library. This object is the parameter of the ``Tree`` constructor that is just a wrapper of the root of the 1-level tree, either a project or a task object.
 
-**5.** To run this test, Run ⟶ Run... ⟶ Edit configurations... ⟶ + and add a new configuration to the Flutter group with name "test tree" and search file tree.dart for Dart entrypoint.
+Declaring a ``late`` atribute means we are not giving a value right now, so it's null. But it will be assigned a non-null value in the constructor. The ``"?"`` in some attibutes means they are allowed to get a null value.
+
+**5.** To run this test, Run ⟶ Run... ⟶ Edit configurations... ⟶ + and add a new configuration to the Flutter group with name "test load tree" and search file tree.dart as Dart entrypoint.
 
 <br>
 
@@ -215,15 +224,15 @@ class MyApp extends StatelessWidget {
       title: 'TimeTracker',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: TextTheme(
-            subhead: TextStyle(fontSize:20.0),
-            body1:TextStyle(fontSize:20.0)),
+        textTheme: const TextTheme(
+            subtitle1: TextStyle(fontSize:20.0),
+            bodyText2:TextStyle(fontSize:20.0)),
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('TimeTracker'),
+          title: const Text('TimeTracker'),
         ),
-        body: Center(
+        body: const Center(
           child: Text('Hello'),
         ),
       ),
@@ -232,7 +241,7 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-To run this non-interesting main change the run configuration to the default one.
+To run this non-interesting main change the run configuration to the default one, ``main.dart``.
 
 Now we are going to make the screen that shows the projects and tasks of a ``Tree`` object that contains a one-level tree (root plus children only, being the root a project).
 
@@ -279,7 +288,7 @@ import 'package:flutter/material.dart';
 **6.** Class ``PageActivitiesState`` is in charge of getting the data to show, which is the state. When the state changes the page will automatically be redrawn with the new data. For now let's just get the ``Tree`` object from the ``getTree()`` whe have created in `tree.dart` :
 
 ```dart
-import 'package:codelab_timetracker/tree.dart';
+import 'package:code_tutorial_flutter_app/tree.dart';
 import 'package:flutter/material.dart';
 
 class PageActivities extends StatefulWidget {
@@ -288,14 +297,14 @@ class PageActivities extends StatefulWidget {
 }
 
 class _PageActivitiesState extends State<PageActivities> {
-  Tree tree;
-  
+  late Tree tree;
+
   @override
   void initState() {
     super.initState();
     tree = getTree();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Container();
