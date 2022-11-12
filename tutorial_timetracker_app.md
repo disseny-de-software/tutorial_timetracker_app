@@ -23,12 +23,14 @@ Preconditions:
 - you have read the slides on Dart and Flutter, including Flutter "futures"
 - optionally you have also gone through the getting started codelab in [flutter.dev](http://flutter.dev)
 
-
-<a id="note">**Note**</a> installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it etc.) takes time. You will eventually do it in the third milestone but now there is a shortcut to start the exercise right away. Go to https://dartpad.dev, make a new pad of Flutter type  and copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same place and consequently you need to not copy some import sentences.
-
 <br>
 
-![](dartpad_dev.png)
+><br>
+><a id="note">Note</a>: installing Flutter plus everything needed to develop for Android (the Android virtual devices, the Android SDK, set up your mobile phone in order to run the app in it etc.) takes time. You will eventually do it in the third milestone but now there is a shortcut to start the exercise right away. Go to <a href="https://dartpad.dev">https://dartpad.dev</a>, make a new pad of Flutter type, copy-paste the code below to the "pad" and click button Run whenever you want to execute it. The only difference is that all the code goes to the same place, not to different files, and consequently you need to not copy some import sentences.
+>
+><br>
+>
+>![](dartpad_dev.png)
 
 <br>
 
@@ -53,7 +55,6 @@ Outline:
 ---
 
 # 1. A view with a static list
-<!-- Duration: 0:03:00 -->
 
 First step is to create Dart classes to represent the one-level tree that is shown in both the task/projects screen or the intervals screen. In the first case the root is a project, in the second is a task. A Flutter object to display a screen of projects and tasks will get the data to show from this tree. For the moment we will instantiate a fixed fake tree. Later on, the tree will be the answer to a REST query to the webserver.
 
@@ -154,13 +155,12 @@ class Tree {
 
   Tree(Map<String, dynamic> dec) {
     // 1 level tree, root and children only, root is either Project or Task. If Project
-    // children are Project or Task, that is, Activity. If root is Task, children are Instance.
+    // children are Project or Task, that is, Activity. If root is Task, children are Interval.
+    assert (dec['class'] == "project" || dec['class']=='task');
     if (dec['class'] == "project") {
       root = Project.fromJson(dec);
-    } else if (dec['class'] == "task") {
-      root = Task.fromJson(dec);
     } else {
-      assert(false);
+      root = Task.fromJson(dec);
     }
   }
 }
@@ -199,9 +199,22 @@ void main() {
 
 In function ``getTree()`` we instantiate a sample JSON string and decode it producing a JSON object by means of the `convert` library. This object is the parameter of the ``Tree`` constructor that is just a wrapper of the root of the 1-level tree, either a project or a task object.
 
-Declaring a ``late`` atribute means we are not giving a value right now, so it's null. But it will be assigned a non-null value in the constructor. The ``"?"`` in some attibutes means they are allowed to get a null value.
+Declaring an attribute as ``late`` means we are not giving it a value right now, so it's null. But it will be assigned a non-null value in the constructor. The ``"?"`` in some attibutes means they are allowed to get a null value.
 
-**5.** To run this test, Run ⟶ Run... ⟶ Edit configurations... ⟶ + and add a new configuration to the Flutter group with name "test load tree" and search file tree.dart as Dart entrypoint.
+**5.** To run this test in IntelliJ, Run ⟶ Run... ⟶ Edit configurations... ⟶ + and add a new configuration to the Flutter group with name "test load tree" and search file ``tree.dart`` as Dart entry point. In https://dartpad.dev simply copy-paste the code to a new Flutter pad and click on the Run button.
+
+You'll see the following output in the console
+
+```text
+root name root, duration 26
+child name software design, duration 16
+child name software testing, duration 0
+child name databases, duration 0
+child name transportation, duration 10
+```
+
+showing a small tree of a root project with some project and task children has been instantiated from the ``jsonStr`` string inside ``getTree()``.
+
 
 <br>
 
@@ -209,7 +222,18 @@ Declaring a ``late`` atribute means we are not giving a value right now, so it's
 
 <br>
 
-**1.** Open file `main.dart` and replace its content by this
+**1.** In IntelliJ, open file `main.dart` and replace its content by this. In dartpad.dev :
+- append it to the end
+- except the import that goes to the top with the other imports
+- comment out the ``void main()`` function
+
+To run this non-interesting main in IntelliJ change the run configuration to the default one, ``main.dart``. In dartpad.dev click Run. 
+
+<br>
+
+>Note: from now on we are going to provide the instructions only for IntelliJ. For dartpad.dev do as before: append the code to the end except imports that go to the top.
+
+<br>
 
 ```dart
 import 'package:flutter/material.dart';
@@ -240,8 +264,6 @@ class MyApp extends StatelessWidget {
   }
 }
 ```
-
-To run this non-interesting main change the run configuration to the default one, ``main.dart``.
 
 Now we are going to make the screen that shows the projects and tasks of a ``Tree`` object that contains a one-level tree (root plus children only, being the root a project).
 
@@ -285,10 +307,10 @@ class _PageActivitiesState extends State<PageActivities> {
 import 'package:flutter/material.dart';
 ```
 
-**6.** Class ``PageActivitiesState`` is in charge of getting the data to show, which is the state. When the state changes the page will automatically be redrawn with the new data. For now let's just get the ``Tree`` object from the ``getTree()`` whe have created in `tree.dart` :
+**6.** Class ``PageActivitiesState`` is in charge of getting the data to show, which is the state. When the state changes the page will automatically be redrawn with the new data. For now let's just get the ``Tree`` object from the ``getTree()`` function in file `tree.dart` :
 
 ```dart
-import 'package:code_tutorial_flutter_app/tree.dart';
+import 'package:timetracker_app/tree.dart';
 import 'package:flutter/material.dart';
 
 class PageActivities extends StatefulWidget {
@@ -350,24 +372,25 @@ Widget _buildRow(Activity activity, int index) {
   String strDuration = Duration(seconds: activity.duration).toString().split('.').first;
   // split by '.' and taking first element of resulting list
   // removes the microseconds part
+  assert (activity is Project || activity is Task);
   if (activity is Project) {
     return ListTile(
       title: Text('${activity.name}'),
       trailing: Text('$strDuration'),
-      onTap: () => {}, 
+      onTap: () => {},
       // TODO, navigate down to show children tasks and projects
     );
-  } else if (activity is Task) {
+  } else {
     Task task = activity as Task;
     Widget trailing;
     trailing = Text('$strDuration');
     return ListTile(
       title: Text('${activity.name}'),
       trailing: trailing,
-      onTap: () => {}, 
+      onTap: () => {},
       // TODO, navigate down to show intervals
-      onLongPress: () {}, 
-      // TODO start/stop counting the time for tis task
+      onLongPress: () {},
+      // TODO start/stop counting the time for this task
     );
   }
 }
@@ -379,6 +402,12 @@ Widget _buildRow(Activity activity, int index) {
 home: PageActivities()
 ```
 
+and add the necessary import
+
+```dart
+import 'package:timetracker_app/page_activities.dart';
+```
+
 **10.** Now run again with hot reload <img src="hotreload.png"> and this is what we get:
 
 ![](pageactivities.png)
@@ -387,20 +416,19 @@ home: PageActivities()
 ---
 
 # 2. Connecting views
-<!-- Duration: 0:04:00 -->
 
-We are going to make another screen to show the intervals of a task. This is necessary because the data to show for intervals is different from that of projects and tasks. In a second step we'll link task transportation to this new screen. That is, when you tap on `transportation` you'll see its intervals. 
+We are going to make another screen to show the intervals of a task. This is necessary because the data to show for intervals is different from that of projects and tasks. In a forthcoming step we'll link task transportation to this new screen. That is, when you tap on `transportation` you'll see its intervals. 
 
 **1.** We'll begin by creating the data to show. Go to `tree.dart` and add this function:
 
 ```dart
 Tree getTreeTask() {
   String strJson = "{"
-   "\"name\":\"transportation\",\"class\":\"task\", \"initialDate\":\"2020-09-22 13:36:08\", \"finalDate\":\"2020-09-22 13:36:34\", \"duration\":10,"
-   "\"intervals\":["
-    "{\"class\":\"interval\", \"initialDate\":\"2020-09-22 13:36:08\", \"finalDate\":\"2020-09-22 13:36:14\", \"duration\":6 },"
-    "{\"class\":\"interval\", \"initialDate\":\"2020-09-22 13:36:30\", \"finalDate\":\"2020-09-22 13:36:34\", \"duration\":4}"
-   "]}";
+      "\"name\":\"transportation\",\"class\":\"task\", \"id\":6, \"active\":false, \"initialDate\":\"2020-09-22 13:36:08\", \"finalDate\":\"2020-09-22 13:36:34\", \"duration\":10,"
+      "\"intervals\":["
+      "{\"class\":\"interval\", \"id\":7, \"active\":false, \"initialDate\":\"2020-09-22 13:36:08\", \"finalDate\":\"2020-09-22 13:36:14\", \"duration\":6},"
+      "{\"class\":\"interval\", \"id\":8, \"active\":false, \"initialDate\":\"2020-09-22 13:36:30\", \"finalDate\":\"2020-09-22 13:36:34\", \"duration\":4}"
+      "]}";
   Map<String, dynamic> decoded = convert.jsonDecode(strJson);
   Tree tree = Tree(decoded);
   return tree;
@@ -426,17 +454,17 @@ class _PageIntervalsState extends State<PageIntervals> {
 }
 ```
 
-**3.** Add to class ``_PageIntervalsState`` the methods ``initState()``, ``build()`` and ``_buildRow()`` analogous to those of ``PageActivities``. 
+**3.** Add to class ``_PageIntervalsState`` the methods ``initState()``, ``build()`` and ``_buildRow()`` analogous to those of ``PageActivities``. And also an attribute ``tree`` of type ``Tree``.
 
-We need class ``Interval`` from ``tree.dart`` but this class already exists in another Dart library so we have to disambiguate with a prefix:
+We will need class ``Interval`` from ``tree.dart`` but this class already exists in another Dart library so we have to disambiguate with a prefix:
 
 ```dart
-import 'package:codelab_timetracker/tree.dart' as Tree;
+import 'package:timetracker_app/tree.dart' as Tree;
 // to avoid collision with an Interval class in another library
 ```
 
 ```dart
-Tree.Tree tree;
+late Tree.Tree tree;
 
 @override
 void initState() {
@@ -471,7 +499,7 @@ Widget build(BuildContext context) {
     ),
   );
 }
-  ```
+```
 
 ```dart
 Widget _buildRow(Tree.Interval interval, int index) {
@@ -486,7 +514,12 @@ Widget _buildRow(Tree.Interval interval, int index) {
 }
 ```
 
-**4.** Just to check it works, in `main.dart` change the ``home`` attribute and reload the app. Once done undo the change.
+>Note: in dartpat.dev since there is no such conflict, write 
+>- ``late Tree tree;``
+>- ``Interval`` instead of ``Tree.Interval``
+>- ``getTreeTask`` instead of ``Tree.getTreeTask``
+
+**4.** Just to check it works, in `main.dart` change the ``home`` attribute, import ``page_intervals.dart`` and reload the app. Once done undo the change and remove the import.
 
 ```dart
 home: PageIntervals() //PageActivities()
@@ -503,7 +536,7 @@ home: PageIntervals() //PageActivities()
         title: Text('${activity.name}'),
         trailing: trailing,
         onTap: () => _navigateDownIntervals(index),
-        onLongPress: () {}, // TODO start/stop counting the time for tis task
+        onLongPress: () {}, // TODO start/stop counting the time for this task
       );
     }    
 ```
@@ -521,7 +554,6 @@ home: PageIntervals() //PageActivities()
 ---
 
 # 3. Implement the Java webserver
-<!-- Duration: 0:05:00 -->
 
 Until now we have been working with fake, fixed data of projects, tasks and intervals. Now we are going to get real data from the Java webserver through its REST API, that is, by http requests.
 
@@ -750,7 +782,6 @@ The 1 means the desired depth of the tree, root plus its children and no more de
 ---
 
 # 4. Connect the Flutter app to the Java webserver
-<!--Duration: 0:05:00 -->
 
 Now switch to the Flutter project. We have to add code to send http requests to the server and get the corresponding answer. This answer is only needed for the ``get_tree`` request because it contains what we have to show next in the interface.
 
@@ -1036,9 +1067,8 @@ class _PageIntervalsState extends State<PageIntervals> {
 ---
 
 # 5. Home button
-<!-- Duration: 0:01:00 -->
 
-In method ``build()`` of ``PageActivities.dart `` *and* ``PageIntervals.dart`` do
+In method ``build()`` of ``PageActivities.dart`` *and*  ``PageIntervals.dart`` do
 
 ```dart
 IconButton(icon: Icon(Icons.home),
@@ -1057,7 +1087,6 @@ IconButton(icon: Icon(Icons.home),
 ---
 
 # 6. Count the time
-<!-- Duration: 0:03:00 -->
 
 Now the navigation throughout the tree of projects, tasks and intervals is complete. However, we can't yet start/stop a task. We have to ask for it by providing a function to the ``onLongPress`` parameter of ``ListView`` constructor in ``PageActivities._buildRow()``:
 
@@ -1134,7 +1163,6 @@ With this we solve problems 1-3 but no yet 4, that is, showing the data of activ
 ---
 
 # 7. Automatic refresh
-<!-- Duration: 0:06:00 -->
 
 The solution to the periodic refresh of a screen is copied from this [post](https://stackoverflow.com/questions/53919391/refresh-flutter-text-widget-content-every-5-minutes-or-periodically).
 
@@ -1228,7 +1256,6 @@ void dispose() {
 ---
 
 # 8. Format date and time
-<!-- Duration: 0:07:00 -->
 
 We leave two details for you to implement:
 
