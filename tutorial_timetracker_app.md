@@ -528,7 +528,7 @@ home: PageIntervals() //PageActivities()
 **5.** To connect the two pages go to `page_activities.dart` and provide a method to the ``onTap`` parameter of ``ListTile`` in ``_PageActivitiesState._buildRow()``:
 
 ```dart
-    } else if (activity is Task) {
+    } else {
       Task task = activity as Task;
       Widget trailing;
       trailing = Text('$strDuration');
