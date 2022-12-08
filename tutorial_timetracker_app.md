@@ -771,6 +771,88 @@ body = activity.toJson(1).toString();
 ```
 The 1 means the desired depth of the tree, root plus its children and no more descendants. Each recursive call to ``toJson`` decrements the passed depth value, when received depth is zero do nothing.
 
+In case you have not yet implemented persistence (in milestone 1), here is the code to make this sentence work. In the Java class ``Activity`` (superclass of ``Project`` and ``Task``) add this method:
+
+```java
+import org.json.JSONObject;
+import java.time.format.DateTimeFormatter;
+
+
+protected static final DateTimeFormatter formatter = 
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+protected void toJson(JSONObject json) {
+    json.put("id", id);
+    json.put("name", name);
+    json.put("initialDate", initialDate==null 
+        ? JSONObject.NULL : formatter.format(initialDate));
+    json.put("finalDate", finalDate==null 
+        ? JSONObject.NULL : formatter.format(finalDate));
+    json.put("duration", duration.toSeconds());
+}
+```
+
+In ``Project`` :
+
+```java
+  public JSONObject toJson(int depth) {
+    JSONObject json = new JSONObject();
+    json.put("class", "project");
+    super.toJson(json);
+    if (depth>0) {
+      JSONArray jsonActivities = new JSONArray();
+      for (Activity activity : activities) {
+        jsonActivities.put(activity.toJson(depth - 1));
+        // important: decrement depth
+      }
+      json.put("activities", jsonActivities);
+    }
+    return json;
+  }
+```
+
+In ``Task`` :
+
+```java
+public JSONObject toJson(int depth) {
+    // depth not used here
+    JSONObject json = new JSONObject();
+    json.put("class", "task");
+    super.toJson(json);
+    json.put("active", active);
+    if (depth>0) {
+        JSONArray jsonIntervals = new JSONArray();
+        for (Interval interval : intervals) {
+            jsonIntervals.put(interval.toJson());
+        }
+        json.put("intervals", jsonIntervals);
+    } else {
+        json.put("intervals", new JSONArray());
+    }
+    return json;
+}
+```
+
+In ``Interval`` :
+
+```java
+  public JSONObject toJson() {
+    JSONObject json = new JSONObject();
+    json.put("class", "interval");
+    json.put("id", id);
+    json.put("initialDate", initialDate==null 
+        ? JSONObject.NULL : formatter.format(initialDate));
+    json.put("finalDate", finalDate==null 
+        ? JSONObject.NULL : formatter.format(finalDate));
+    json.put("duration", duration.toSeconds());
+    json.put("active", active);
+    return json;
+  }
+```
+
+<br>
+
+
 **4.** To check everything works, open a web browser and go to URL ``http://localhost:8080/get_tree?0``, you should see this:
 
 |    |    |
