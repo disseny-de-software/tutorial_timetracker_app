@@ -892,7 +892,7 @@ const String baseUrl = "http://10.0.2.2:8080";
 
 Future<Tree> getTree(int id) async {
   String uri = "$baseUrl/get_tree?$id";
-  final response = await client.get(uri);
+  final response = await client.get(Uri.parse(uri)); // updated 16-dec-2022
   // response is NOT a Future because of await but since getTree() is async,
   // execution continues (leaves this function) until response is available,
   // and then we come back here
@@ -996,7 +996,7 @@ class _PageActivitiesState extends State<PageActivities> {
         if (snapshot.hasData) {
           return Scaffold(
             appBar: AppBar(
-              title: Text(snapshot.data.root.name),
+              title: Text(snapshot.data!.root.name), // updated 16-dec-2022
               actions: <Widget>[
                 IconButton(icon: Icon(Icons.home),
                     onPressed: () {} // TODO go home page = root
@@ -1007,9 +1007,9 @@ class _PageActivitiesState extends State<PageActivities> {
             body: ListView.separated(
               // it's like ListView.builder() but better because it includes a separator between items
               padding: const EdgeInsets.all(16.0),
-              itemCount: snapshot.data.root.children.length,
+              itemCount: snapshot.data!.root.children.length, // updated 16-dec-2022
               itemBuilder: (BuildContext context, int index) =>
-                  _buildRow(snapshot.data.root.children[index], index),
+                  _buildRow(snapshot.data!.root.children[index], index), // updated 16-dec-2022
               separatorBuilder: (BuildContext context, int index) =>
                   const Divider(),
             ),
@@ -1111,10 +1111,10 @@ class _PageIntervalsState extends State<PageIntervals> {
       builder: (context, snapshot) {
         // anonymous function
         if (snapshot.hasData) {
-          int numChildren = snapshot.data.root.children.length;
+          int numChildren = snapshot.data!.root.children.length; // updated 16-dec-2022
           return Scaffold(
             appBar: AppBar(
-              title: Text(snapshot.data.root.name),
+              title: Text(snapshot.data!.root.name), // updated 16-dec-2022
               actions: <Widget>[
                 IconButton(icon: Icon(Icons.home),
                     onPressed: () {}, // TODO
@@ -1126,7 +1126,7 @@ class _PageIntervalsState extends State<PageIntervals> {
               padding: const EdgeInsets.all(16.0),
               itemCount: numChildren,
               itemBuilder: (BuildContext context, int index) =>
-                  _buildRow(snapshot.data.root.children[index], index),
+                  _buildRow(snapshot.data!.root.children[index], index), // updated 16-dec-2022
               separatorBuilder: (BuildContext context, int index) =>
               const Divider(),
             ),
