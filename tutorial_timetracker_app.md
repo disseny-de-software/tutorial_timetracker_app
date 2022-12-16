@@ -1,3 +1,7 @@
+`I've made a few small corrections to update the code to the present Flutter version, look for 16-dec-2022`
+
+
+
 # Tutorial TimeTracker App
 
 This tutorial has three goals:
@@ -780,6 +784,8 @@ import java.time.format.DateTimeFormatter;
 
 protected static final DateTimeFormatter formatter = 
     DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+public abstract JSONObject toJson(int depth); // added 16-dec-2022
 
 protected void toJson(JSONObject json) {
     json.put("id", id);
